@@ -1,3 +1,39 @@
 #!/bin/bash
 
+# build temp backup list
+FILES=$(cat /etc/yavdr/backup/files/* | sort | uniq | grep -v "^$")
 
+# load config
+. /etc/yavdr/backup/config.sh
+
+# check for valid backup dir
+if [ ! -d "$BACKUP_DIR" ]; then
+  echo "Backup directory $BACKUP_DIR not found"
+  exit 1
+fi
+
+# create new directroy
+DAY=$(date +"%Y%m%d%H%M%S")
+mkdir "$BACKUP_DIR/$DAY"
+
+# create backup
+for FILE in $FILES; do
+  DIR=$(dirname $FILE)
+  DEST="$BACKUP/$DAY/$DIR/"
+  mkdir -p $DEST
+  cp -r $FILE $DEST
+done
+
+# cleanup
+CNT=0
+BACKUPS=$(find $BACKUP_DIR/* -maxdepth 0 -type d | sort)
+for BACKUP in $BACKUPS; do
+  let CNT=CNT+1
+  if [ $CNT -gt $BACKUP_KEEP ]; then
+    rm -rf $BACKUP
+  fi
+done
+
+
+echo "Backup successful!"
+exit 0
