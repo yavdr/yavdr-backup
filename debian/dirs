@@ -1,3 +1,2 @@
-etc/yavdr/backup/files
-etc/yavdr/backup/vdr-settings
+etc/yavdr/backup
 srv/backup
