@@ -26,7 +26,7 @@ done
 
 # cleanup
 CNT=0
-BACKUPS=$(find $BACKUP_DIR/* -maxdepth 0 -type d | sort)
+BACKUPS=$(find $BACKUP_DIR/* -maxdepth 0 -type d | sort -r)
 for BACKUP in $BACKUPS; do
   let CNT=CNT+1
   if [ $CNT -gt $BACKUP_KEEP ]; then
