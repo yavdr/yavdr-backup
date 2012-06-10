@@ -1,0 +1,55 @@
+#!/bin/bash -e
+
+# load config
+. /etc/yavdr/backup/config.sh
+
+# check for valid backup dir
+if [ ! -d "$BACKUP_DIR" ]; then
+  echo "Backup directory $BACKUP_DIR not found"
+  exit 1
+fi
+
+# create new directroy
+DAY=$(date +"%Y%m%d%H%M%S")
+CURRENT_BACKUP="$BACKUP_DIR/$DAY"
+mkdir -p $CURRENT_BACKUP
+
+logger -t yavdr-backup "create backup in $BACKUP_DIR/$DAY"
+
+mkdir -p "$CURRENT_BACKUP/files"
+logger -t yavdr-backup "backup files"
+for PACKAGE in `ls /etc/yavdr/backup/files`; do
+  for FILE in `cat /etc/yavdr/backup/files/$PACKAGE | grep -v "^$" | sort | uniq`; do
+    logger -t yavdr-backup "package: $PACKAGE file: $FILE"
+    DIR=$(dirname $FILE)
+    DEST="$CURRENT_BACKUP/files/$PACKAGE/$DIR"
+    mkdir -p $DEST
+    cp -r $FILE $DEST
+  done
+done
+
+# create backup for hdf
+mkdir -p "$CURRENT_BACKUP/hdf"
+logger -t yavdr-backup "backup hdf"
+for PACKAGE in `ls /etc/yavdr/backup/hdf`; do
+  rm /tmp/tmp.hdf.backup 2&> /dev/null ||:
+  for KEY in `cat /etc/yavdr/backup/hdf/$PACKAGE | grep -v "^$" | sort | uniq`; do
+    logger -t yavdr-backup "package: $PACKAGE key: $KEY"
+    yavdr-db-tool -a dump -k $KEY >> /tmp/tmp.hdf.backup
+  done
+  cat /tmp/tmp.hdf.backup | sort | uniq > "$CURRENT_BACKUP/hdf/$PACKAGE"
+  rm /tmp/tmp.hdf.backup
+done
+
+# cleanup
+CNT=0
+BACKUPS=$(find $BACKUP_DIR/* -maxdepth 0 -type d | sort -r)
+for BACKUP in $BACKUPS; do
+  let CNT=CNT+1
+  if [ $CNT -gt $BACKUP_KEEP ]; then
+    rm -rf $BACKUP
+  fi
+done
+
+logger -t yavdr-backup "backup created"
+exit 0
