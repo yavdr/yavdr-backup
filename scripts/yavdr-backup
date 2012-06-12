@@ -41,9 +41,15 @@ for PACKAGE in `ls /etc/yavdr/backup/hdf`; do
   rm /tmp/tmp.hdf.backup
 done
 
+# compress
+cd $BACKUP_DIR
+logger -t yavdr-backup "compress"
+tar czf $DAY.tgz $DAY
+rm -rf $CURRENT_BACKUP
+
 # cleanup
 CNT=0
-BACKUPS=$(find $BACKUP_DIR/* -maxdepth 0 -type d | sort -r)
+BACKUPS=$(find /srv/backup/* -maxdepth 0 | sort -r)
 for BACKUP in $BACKUPS; do
   let CNT=CNT+1
   if [ $CNT -gt $BACKUP_KEEP ]; then
