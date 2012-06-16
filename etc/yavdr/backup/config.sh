@@ -1,4 +1,4 @@
 #!/bin/bash
 
-BACKUP_DIR="/srv/backup"
+BACKUP_DIR="/yavdr/backup"
 BACKUP_KEEP=50
