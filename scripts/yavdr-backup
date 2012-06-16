@@ -24,7 +24,7 @@ for PACKAGE in `ls /etc/yavdr/backup/files`; do
     DIR=$(dirname $FILE)
     DEST="$CURRENT_BACKUP/files/$PACKAGE/$DIR"
     mkdir -p $DEST
-    cp -r $FILE $DEST
+    cp -ax $FILE $DEST
   done
 done
 
@@ -56,6 +56,9 @@ for BACKUP in $BACKUPS; do
     rm -rf $BACKUP
   fi
 done
+
+# update rechte
+chown yavdr:yavdr $BACKUP_DIR -R
 
 logger -t yavdr-backup "backup created"
 exit 0
